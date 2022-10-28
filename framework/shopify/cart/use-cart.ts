@@ -1,35 +1,64 @@
-import useCart from "@common/cart/use-cart";
-import { createCheckout, getCheckoutQuery } from "@framework/utils";
+/* eslint-disable react-hooks/rules-of-hooks */
+import useCart, { UseCart } from "@common/cart/use-cart";
+import { Cart } from "@common/types/cart";
+import { SWRHook } from "@common/types/hooks";
+import { Checkout } from "@framework/schema";
+import {
+  checkoutToCart,
+  createCheckout,
+  getCheckoutQuery,
+} from "@framework/utils";
+import { useMemo } from "react";
 
-export default useCart;
+export type UseCartHookDescriptor = {
+  fetcherInput: {
+    checkoutId: string;
+  };
+  fetcherOutput: {
+    node: Checkout;
+  };
+  data: Cart;
+};
 
-export const handler = {
-  fetchOptions: {
+export default useCart as UseCart<typeof handler>;
+
+export const handler: SWRHook<UseCartHookDescriptor> = {
+  fetcherOptions: {
     query: getCheckoutQuery,
   },
-  async fetcher({ fetch, options, input: { checkoutId } }: any) {
-    let checkout;
+  async fetcher({ fetch, options, input: { checkoutId } }) {
+    let checkout: Checkout;
 
     if (checkoutId) {
-      debugger;
       const { data } = await fetch({
         ...options,
         variables: {
           checkoutId,
         },
       });
-      debugger;
+
       checkout = data.node;
     } else {
-      checkout = await createCheckout(fetch);
+      checkout = await createCheckout(fetch as any);
     }
+    const cart = checkoutToCart(checkout);
 
-    return checkout;
+    return cart;
   },
-  useHook: ({ useData }: any) => {
-    const data = useData();
-    return {
-      data,
-    };
-  },
+  useHook:
+    ({ useData }) =>
+    () => {
+      const result = useData({
+        swrOptions: {
+          revalidateOnFocus: false,
+        },
+      });
+
+      return useMemo(() => {
+        return {
+          ...result,
+          isEmpty: (result.data?.lineItems.length ?? 0) <= 0,
+        };
+      }, [result]);
+    },
 };

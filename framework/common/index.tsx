@@ -11,6 +11,7 @@ interface ApiProviderProps {
 export const ApiContext = createContext<Partial<ApiProviderContext>>({});
 export const ApiProvider = ({ children, config, hooks }: ApiProviderProps) => {
   const coreConfig = useMemo(() => {
+    console.log(fetch, "hallo");
     return {
       fetcher: config.fetch,
       hooks,

@@ -1,10 +1,10 @@
 import { useApiProvider } from "@common";
 import { ApiFetcher } from "@common/types/api";
-import { ApiHooks } from "@common/types/hooks";
+import { ApiHooks, Hook } from "@common/types/hooks";
 import { MutationHook } from "@common/types/hooks";
 import useSWR from "swr";
 
-export const useHook = (fn: (apiHooks: ApiHooks) => MutationHook) => {
+export const useHook = (fn: (apiHooks: ApiHooks) => Hook) => {
   const { hooks } = useApiProvider();
   return fn(hooks);
 };
@@ -22,7 +22,7 @@ export const useMutationHook = (hook: MutationHook) => {
   });
 };
 
-const useData = (hook: any, fetcher: ApiFetcher) => {
+const useData = (hook: any, fetcher: ApiFetcher, ctx: any) => {
   const hookFetcher = async (query: string) => {
     try {
       return await hook.fetcher({
@@ -35,7 +35,11 @@ const useData = (hook: any, fetcher: ApiFetcher) => {
     }
   };
 
-  const response = useSWR(hook.fetchOptions.query, hookFetcher);
+  const response = useSWR(
+    hook.fetcherOptions.query,
+    hookFetcher,
+    ctx.swrOptions
+  );
 
   return response;
 };
@@ -43,8 +47,8 @@ const useData = (hook: any, fetcher: ApiFetcher) => {
 export const useSWRHook = (hook: any) => {
   const { fetcher } = useApiProvider();
   return hook.useHook({
-    useData() {
-      const data = useData(hook, fetcher);
+    useData(ctx: any) {
+      const data = useData(hook, fetcher, ctx);
       return data;
     },
   });

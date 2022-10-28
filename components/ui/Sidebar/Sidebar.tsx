@@ -35,7 +35,7 @@ const Sidebar: FC<Props> = ({ children, isOpen, onClose }) => {
               onClick={onClose}
               className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
             />
-            <section className="absolute inset-y-0 right-0 pl-10 max-w-full flex sm:pl-16 outline-none">
+            <section className="absolute inset-y-0 left-0 max-w-full flex sm:pl-16 outline-none">
               <div className="h-full md:w-screen md:max-w-md">
                 <div className="h-full flex flex-col text-base bg-accents-1 shadow-xl overflow-y-auto">
                   {children}
